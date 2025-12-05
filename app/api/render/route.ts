@@ -50,9 +50,15 @@ export async function POST(request: NextRequest) {
     const outputPath = path.join(outputDir, outputFilename);
 
     // Configure webpack to ignore README and other non-JS files
+    // and set cache directory to /tmp for Vercel read-only filesystem
     const webpackOverride: WebpackOverrideFn = (config) => {
       return {
         ...config,
+        cache: {
+          ...((config.cache && typeof config.cache === 'object') ? config.cache : {}),
+          type: 'filesystem',
+          cacheDirectory: path.join(os.tmpdir(), 'remotion-webpack-cache'),
+        },
         module: {
           ...config.module,
           rules: [
