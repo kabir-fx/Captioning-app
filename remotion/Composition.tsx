@@ -11,7 +11,7 @@ import { StandardCaption } from './captions/StandardCaption';
 import { NewsCaption } from './captions/NewsCaption';
 import { KaraokeCaption } from './captions/KaraokeCaption';
 
-interface CaptionedVideoProps {
+export interface CaptionedVideoProps {
   videoSrc: string;
   captions: Caption[];
   style: CaptionStyle;

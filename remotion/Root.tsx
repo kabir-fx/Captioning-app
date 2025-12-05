@@ -6,7 +6,8 @@ export const RemotionRoot: React.FC = () => {
     <>
       <Composition
         id="CaptionedVideo"
-        component={CaptionedVideo}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        component={CaptionedVideo as React.FC<any>}
         durationInFrames={300} // Will be overridden by video duration
         fps={30}
         width={1920}
