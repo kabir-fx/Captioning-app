@@ -34,6 +34,7 @@ A full-stack web application that automatically generates captions for videos us
 - **Bun**: Version 1.2.20 or higher ([Installation guide](https://bun.sh))
 - **FFmpeg**: Required for audio extraction ([Installation guide](https://ffmpeg.org/download.html))
 - **Google Gemini API Key**: Get one at [Google AI Studio](https://aistudio.google.com/app/apikey)
+- **Vercel Blob**: Required for file storage (Create a Blob store in your Vercel project)
 
 ### Installing FFmpeg
 
@@ -83,7 +84,15 @@ Edit `.env.local` and add your Gemini API key:
 
 ```env
 GEMINI_API_KEY=your_actual_api_key_here
+BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
 ```
+
+To get the `BLOB_READ_WRITE_TOKEN`:
+
+1. Go to your Vercel Project Dashboard
+2. Navigate to **Storage** tab
+3. Create a new Blob Store
+4. In the Blob Store settings, copy the `BLOB_READ_WRITE_TOKEN` value
 
 ### 4. Create required directories
 

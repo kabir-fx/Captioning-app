@@ -42,7 +42,7 @@ export const CaptionedVideo: React.FC<CaptionedVideoProps> = ({
   return (
     <AbsoluteFill>
       {/* Background video */}
-      <Video src={staticFile(videoSrc)} />
+      <Video src={videoSrc.startsWith('http') ? videoSrc : staticFile(videoSrc)} />
 
       {/* Caption overlay */}
       {currentCaption && (

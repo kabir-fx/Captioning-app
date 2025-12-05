@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import * as path from 'path';
-import * as fs from 'fs';
-import { randomUUID } from 'crypto';
+import { put } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,28 +18,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+    // Upload to Vercel Blob
+    const blob = await put(file.name, file, {
+      access: 'public',
+      addRandomSuffix: true,
+    });
 
-    // Generate unique filename
-    const fileId = randomUUID();
-    const fileExtension = path.extname(file.name);
-    const filename = `${fileId}${fileExtension}`;
-    const filepath = path.join(uploadsDir, filename);
-
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
+    const fileId = crypto.randomUUID();
 
     return NextResponse.json({
       success: true,
       videoId: fileId,
-      filename,
-      path: `/uploads/${filename}`,
+      videoUrl: blob.url,
+      filename: file.name,
+      path: blob.url,
       size: file.size,
     });
   } catch (error) {

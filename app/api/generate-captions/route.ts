@@ -6,11 +6,12 @@ import {
   generateCaptionsFromAudio,
   generateSimpleCaptions,
 } from "@/lib/gemini";
+import { downloadToTemp } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { videoId, filename } = body;
+    const { videoId, filename, videoUrl } = body;
 
     if (!videoId || !filename) {
       return NextResponse.json(
@@ -19,14 +20,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get video path
-    const videoPath = path.join(process.cwd(), "public", "uploads", filename);
+    // Determine video path
+    let videoPath: string;
+    let isTempVideo = false;
 
-    if (!fs.existsSync(videoPath)) {
-      return NextResponse.json(
-        { error: "Video file not found" },
-        { status: 404 }
-      );
+    if (videoUrl) {
+      // It's a URL (Vercel Blob), download to temp
+      console.log('Downloading video from URL...');
+      const ext = path.extname(filename);
+      videoPath = await downloadToTemp(videoUrl, ext);
+      isTempVideo = true;
+    } else if (videoId.startsWith('http')) {
+       // Fallback if videoId is the URL (legacy)
+       console.log('Downloading video from URL (legacy)...');
+       const ext = path.extname(filename);
+       videoPath = await downloadToTemp(videoId, ext);
+       isTempVideo = true;
+    } else {
+      // Local file (fallback)
+      videoPath = path.join(process.cwd(), "public", "uploads", filename);
+      if (!fs.existsSync(videoPath)) {
+        return NextResponse.json(
+          { error: "Video file not found" },
+          { status: 404 }
+        );
+      }
     }
 
     // Create temp directory for audio extraction
@@ -35,7 +53,7 @@ export async function POST(request: NextRequest) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const audioPath = path.join(tempDir, `${videoId}.mp3`);
+    const audioPath = path.join(tempDir, `${path.basename(videoPath, path.extname(videoPath))}.mp3`);
 
     try {
       // Extract audio from video
@@ -65,6 +83,10 @@ export async function POST(request: NextRequest) {
       // Clean up audio file
       if (fs.existsSync(audioPath)) {
         fs.unlinkSync(audioPath);
+      }
+      // Clean up temp video file if downloaded
+      if (isTempVideo && fs.existsSync(videoPath)) {
+        fs.unlinkSync(videoPath);
       }
     }
   } catch (error) {

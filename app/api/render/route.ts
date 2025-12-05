@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { bundle } from '@remotion/bundler';
+import { put } from '@vercel/blob';
 import { renderMedia, selectComposition } from '@remotion/renderer';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -9,11 +10,12 @@ import type { WebpackOverrideFn } from '@remotion/bundler';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { videoId, filename, captions, style } = body as {
+    const { videoId, filename, captions, style, videoUrl } = body as {
       videoId: string;
       filename: string;
       captions: Caption[];
       style: CaptionStyle;
+      videoUrl?: string;
     };
 
     if (!videoId || !filename || !captions || !style) {
@@ -23,17 +25,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const videoPath = path.join(process.cwd(), 'public', 'uploads', filename);
-    
-    if (!fs.existsSync(videoPath)) {
-      return NextResponse.json(
-        { error: 'Video file not found' },
-        { status: 404 }
-      );
+    let videoSrc = '';
+    if (videoUrl) {
+      videoSrc = videoUrl;
+    } else {
+      const videoPath = path.join(process.cwd(), 'public', 'uploads', filename);
+      if (!fs.existsSync(videoPath)) {
+        return NextResponse.json(
+          { error: 'Video file not found' },
+          { status: 404 }
+        );
+      }
+      videoSrc = `/uploads/${filename}`;
     }
 
-    // Create output directory
-    const outputDir = path.join(process.cwd(), 'public', 'outputs');
+    // Create temp directory for output
+    const outputDir = path.join(process.cwd(), 'tmp');
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
@@ -71,7 +78,7 @@ export async function POST(request: NextRequest) {
       serveUrl: bundleLocation,
       id: 'CaptionedVideo',
       inputProps: {
-        videoSrc: `/uploads/${filename}`,
+        videoSrc,
         captions,
         style,
       },
@@ -85,16 +92,29 @@ export async function POST(request: NextRequest) {
       codec: 'h264',
       outputLocation: outputPath,
       inputProps: {
-        videoSrc: `/uploads/${filename}`,
+        videoSrc,
         captions,
         style,
       },
     });
 
+    // Upload rendered video to Vercel Blob
+    console.log('Uploading rendered video to Vercel Blob...');
+    const videoStream = fs.createReadStream(outputPath);
+    const blob = await put(outputFilename, videoStream, {
+      access: 'public',
+      addRandomSuffix: true,
+    });
+
+    // Clean up local temp file
+    if (fs.existsSync(outputPath)) {
+      fs.unlinkSync(outputPath);
+    }
+
     return NextResponse.json({
       success: true,
-      outputPath: `/outputs/${outputFilename}`,
-      outputUrl: `/outputs/${outputFilename}`,
+      outputPath: blob.url,
+      outputUrl: blob.url,
     });
   } catch (error) {
     console.error('Render error:', error);

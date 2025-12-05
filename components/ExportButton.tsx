@@ -8,6 +8,7 @@ interface ExportButtonProps {
   videoFilename: string;
   captions: Caption[];
   style: CaptionStyle;
+  videoUrl: string;
 }
 
 export const ExportButton: React.FC<ExportButtonProps> = ({
@@ -15,6 +16,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
   videoFilename,
   captions,
   style,
+  videoUrl,
 }) => {
   const [isRendering, setIsRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
@@ -36,6 +38,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
           filename: videoFilename,
           captions,
           style,
+          videoUrl,
         }),
       });
 

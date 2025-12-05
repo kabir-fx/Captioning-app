@@ -38,7 +38,7 @@ export default function Home() {
       const response = await fetch('/api/generate-captions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoId, filename: videoFilename }),
+        body: JSON.stringify({ videoId, filename: videoFilename, videoUrl: videoPath }),
       });
 
       if (!response.ok) {
@@ -183,6 +183,7 @@ export default function Home() {
                   videoFilename={videoFilename}
                   captions={captions}
                   style={selectedStyle}
+                  videoUrl={videoPath}
                 />
               </div>
             </section>
