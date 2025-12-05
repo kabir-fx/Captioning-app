@@ -4,6 +4,7 @@ import { put } from '@vercel/blob';
 import { renderMedia, selectComposition } from '@remotion/renderer';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { Caption, CaptionStyle } from '@/lib/types';
 import type { WebpackOverrideFn } from '@remotion/bundler';
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create temp directory for output
-    const outputDir = path.join(process.cwd(), 'tmp');
+    const outputDir = os.tmpdir();
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }

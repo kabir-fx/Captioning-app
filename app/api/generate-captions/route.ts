@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as path from "path";
 import * as fs from "fs";
+import * as os from "os";
 import { extractAudioFromVideo, getVideoMetadata } from "@/lib/ffmpeg";
 import {
   generateCaptionsFromAudio,
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create temp directory for audio extraction
-    const tempDir = path.join(process.cwd(), "tmp");
+    const tempDir = os.tmpdir();
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }

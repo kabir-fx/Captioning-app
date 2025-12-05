@@ -10,8 +10,10 @@ import { ReadableStream } from 'stream/web';
  * @param extension The file extension (e.g., '.mp4')
  * @returns The path to the downloaded temporary file
  */
+import * as os from 'os';
+
 export async function downloadToTemp(url: string, extension: string): Promise<string> {
-  const tempDir = path.join(process.cwd(), 'tmp');
+  const tempDir = os.tmpdir();
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
   }
